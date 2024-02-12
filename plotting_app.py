@@ -3,7 +3,6 @@ import os
 import pandas as pd
 import re
 import logging
-import subprocess
 import streamlit as st
 
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
@@ -33,7 +32,7 @@ def generate_plot_code(df,nlq):
         1. Always use "df" as a parameter in your function.
         2. Utilize the Plotly library to plot charts whenever applicable.
         3. Ensure that the attributes mentioned in the NLQ are present in the DataFrame attributes list.
-        4. Always import necessary libraries.
+        4. Always import necessary libraries without fail.
 
         Example:
         NLQ : Generate a line chart with combintation of Strike, Volume and Open Interest.
@@ -121,22 +120,29 @@ def main():
                 if nlq:
                     with st.spinner(text="Generating plot..."):
                         code = generate_plot_code(df,nlq)
-                        # Check if the file exists
-                        if os.path.exists("chart_file.py"):
-                            # Remove the existing file
-                            os.remove("chart_file.py")
-                            logging.info('Old chart file removed')
-                        with open('chart_file.py', "w") as f:
-                            f.write(code)
-                            logging.info('New chart file generated')
-                        try:
-                            from chart_file import generate_chart
-                            logging.info(str(generate_chart))
-                            fig = generate_chart(df)
-                            del generate_chart
-                            st.plotly_chart(fig, use_container_width=True)
-                        except Exception as e:
-                            logging.exception(f'{str(e)}')
+                        if code:
+                            # Check if the file exists
+                            # if os.path.exists("chart_file.py"):
+                            #     # Remove the existing file
+                            #     os.remove("chart_file.py")
+                            #     logging.info('Old chart file removed')
+                            
+                            with open('chart_file.py', "w") as f:
+                                f.write(code)
+                                logging.info('New chart file generated')
+                                
+                            try:
+                                from chart_file import generate_chart
+                                #logging.info(str(generate_chart))
+                                fig = generate_chart(df.copy())
+                                del generate_chart
+                                st.plotly_chart(fig, use_container_width=True)
+                            except Exception as e:
+                                logging.exception(f'{str(e)}')
+                                raise
+                        else:
+                            logging.exception('Something went wrong in LLM output')
+                            st.error('Something went wrong in LLM output')
                 else:
                     st.error("Please enter a NLQ.")
 
