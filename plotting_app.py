@@ -119,6 +119,8 @@ def main():
             if st.button("Generate Chart"):
                 if nlq:
                     with st.spinner(text="Generating plot..."):
+                        df = df.replace('-', pd.NA)
+                        df = df.fillna(df.mean())
                         code = generate_plot_code(df,nlq)
                         if code:
                             # Check if the file exists
